@@ -6,7 +6,13 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', '@nuxt/eslint'],
 
-  css: ['~/assets/css/main.css'],
+  css: ['@/assets/css/main.css'],
+
+  // components keep their folder prefix (ProfessionalCard, ...).
+  components: [
+    { path: '~/components/ui', pathPrefix: false },
+    { path: '~/components/professional', pathPrefix: false },
+  ],
 
   typescript: {
     strict: true,
