@@ -5,10 +5,9 @@
  * orchestrates calls to the API service. Components never call the service
  * directly — they read from this store.
  */
+import { DEFAULT_LIMIT, DEFAULT_SORT } from '@/constants/professional'
 import { getProfessionals } from '@/services/professionals'
 import type { Professional, ProfessionalCategory, SortOption } from '@/types/professional'
-
-export const DEFAULT_LIMIT = 20
 
 interface ProfessionalsState {
   items: Professional[]
@@ -35,7 +34,7 @@ export const useProfessionalsStore = defineStore('professionals', {
     // filters
     search: '',
     category: null,
-    sort: 'rating',
+    sort: DEFAULT_SORT,
   }),
 
   getters: {
@@ -118,7 +117,7 @@ export const useProfessionalsStore = defineStore('professionals', {
     async clearFilters() {
       this.search = ''
       this.category = null
-      this.sort = 'rating'
+      this.sort = DEFAULT_SORT
       await this.reset()
     },
   },

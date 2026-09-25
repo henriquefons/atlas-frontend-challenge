@@ -1,3 +1,4 @@
+import { DEFAULT_LIMIT, MAX_LIMIT } from '@/constants/professional'
 import type { Professional, ProfessionalsResponse, SortOption } from '@/types/professional'
 import professionals from '#data/professionals.json'
 
@@ -7,9 +8,6 @@ const SORTABLE: Record<SortOption, (a: Professional, b: Professional) => number>
   rating: (a, b) => b.rating - a.rating,
   distance: (a, b) => a.distanceKm - b.distanceKm,
 }
-
-const DEFAULT_LIMIT = 20
-const MAX_LIMIT = 100
 
 /**
  * Paginated listing of professionals.
