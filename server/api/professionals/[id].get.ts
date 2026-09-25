@@ -1,4 +1,4 @@
-import type { Professional } from '~/types/professional'
+import type { Professional } from '@/types/professional'
 import professionals from '#data/professionals.json'
 
 /** Professional detail by id. Returns 404 when not found. */

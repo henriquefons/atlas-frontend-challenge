@@ -1,4 +1,4 @@
-import type { Professional, ProfessionalsResponse, SortOption } from '~/types/professional'
+import type { Professional, ProfessionalsResponse, SortOption } from '@/types/professional'
 import professionals from '#data/professionals.json'
 
 const SORTABLE: Record<SortOption, (a: Professional, b: Professional) => number> = {
