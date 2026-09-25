@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+
+# Build output
+.nuxt
+.output
+dist
+
+# Generated data (produced by scripts/generate-data.mjs)
+data
+
+# Challenge documentation (keep original formatting)
+docs
+README.md
+
+# Lockfiles
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Logs
+*.log

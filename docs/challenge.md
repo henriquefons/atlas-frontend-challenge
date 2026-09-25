@@ -1,6 +1,6 @@
 # Desafio Técnico Front-end: Catálogo de Profissionais
 
-Olá! 
+Olá!
 
 Seja bem-vindo(a) ao desafio técnico para a posição de **Pessoa Desenvolvedora Front-end** da **Atlas Technologies**.
 

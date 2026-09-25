@@ -26,8 +26,7 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         {
           name: 'description',
-          content:
-            'Encontre profissionais autônomos por categoria, preço, avaliação e distância.',
+          content: 'Encontre profissionais autônomos por categoria, preço, avaliação e distância.',
         },
       ],
     },
