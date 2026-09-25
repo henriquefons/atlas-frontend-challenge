@@ -11,7 +11,6 @@ const props = withDefaults(
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
 const local = ref(props.modelValue)
-let timer: ReturnType<typeof setTimeout> | undefined
 
 // Keep the local value in sync when the parent changes it (e.g. URL navigation).
 watch(
@@ -21,15 +20,15 @@ watch(
   },
 )
 
+const emitDebounced = useDebounce(
+  (value: string) => emit('update:modelValue', value),
+  props.debounce,
+)
+
 function onInput(value: string) {
   local.value = value
-  if (timer) clearTimeout(timer)
-  timer = setTimeout(() => emit('update:modelValue', value), props.debounce)
+  emitDebounced(value)
 }
-
-onBeforeUnmount(() => {
-  if (timer) clearTimeout(timer)
-})
 </script>
 
 <template>

@@ -48,7 +48,13 @@ const distance = computed(() => formatDistance(props.professional.distanceKm))
         <span class="text-xs text-slate-500">A partir de</span>
         <p class="font-semibold text-slate-900">{{ price }}</p>
       </div>
-      <BaseButton size="sm" variant="secondary">Ver perfil</BaseButton>
+      <NuxtLink
+        :to="`/profissionais/${professional.id}`"
+        :aria-label="`Ver perfil de ${professional.name}`"
+        class="inline-flex items-center justify-center rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-slate-700 ring-1 ring-inset ring-slate-300 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+      >
+        Ver perfil
+      </NuxtLink>
     </div>
   </article>
 </template>
