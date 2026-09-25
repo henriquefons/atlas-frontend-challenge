@@ -8,9 +8,12 @@ export default defineNuxtConfig({
 
   css: ['@/assets/css/main.css'],
 
-  // components keep their folder prefix (ProfessionalCard, ...).
+  // UI primitives grouped by purpose. `pathPrefix: false` keeps the component
+  // name as-is (BaseButton, BaseInput, ...) regardless of its folder.
   components: [
-    { path: '~/components/ui', pathPrefix: false },
+    { path: '~/components/ui/actions', pathPrefix: false },
+    { path: '~/components/ui/forms', pathPrefix: false },
+    { path: '~/components/ui/data-display', pathPrefix: false },
     { path: '~/components/professional', pathPrefix: false },
   ],
 
