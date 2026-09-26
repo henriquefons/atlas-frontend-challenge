@@ -1,12 +1,13 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getProfessionals } from '@/services/professionals'
+import { getProfessionalById, getProfessionals } from '@/services/professionals'
 import { useProfessionalsStore } from '@/stores/professionals'
 import type { Professional, ProfessionalsResponse } from '@/types/professional'
 
 vi.mock('@/services/professionals')
 
 const getProfessionalsMock = vi.mocked(getProfessionals)
+const getProfessionalByIdMock = vi.mocked(getProfessionalById)
 
 const professional = (id: string): Professional => ({
   id,
@@ -34,6 +35,7 @@ const response = (items: Professional[], total: number): ProfessionalsResponse =
 beforeEach(() => {
   setActivePinia(createPinia())
   getProfessionalsMock.mockReset()
+  getProfessionalByIdMock.mockReset()
 })
 
 describe('loadFirstPage', () => {
@@ -115,5 +117,56 @@ describe('loadNextPage', () => {
     expect(store.items.map((item) => item.id)).toEqual(['p1', 'p2'])
     expect(store.errorNext).toBeTruthy()
     expect(store.loading).toBe('idle')
+  })
+})
+
+describe('loadById', () => {
+  it('stores the professional on success', async () => {
+    getProfessionalByIdMock.mockResolvedValue(professional('p1'))
+    const store = useProfessionalsStore()
+
+    await store.loadById('p1')
+
+    expect(store.professional?.id).toBe('p1')
+    expect(store.errorById).toBeNull()
+    expect(store.notFoundById).toBe(false)
+    expect(store.loading).toBe('idle')
+  })
+
+  it('treats a 404 as a missing record', async () => {
+    getProfessionalByIdMock.mockRejectedValue(
+      Object.assign(new Error('[GET] 404'), { statusCode: 404 }),
+    )
+    const store = useProfessionalsStore()
+
+    await store.loadById('desconhecido')
+
+    expect(store.professional).toBeNull()
+    expect(store.notFoundById).toBe(true)
+    expect(store.errorById).toBe('Profissional não encontrado.')
+  })
+
+  it('does not report a server failure as a missing record', async () => {
+    getProfessionalByIdMock.mockRejectedValue(
+      Object.assign(new Error('[GET] 500'), { response: { status: 500 } }),
+    )
+    const store = useProfessionalsStore()
+
+    await store.loadById('p1')
+
+    expect(store.notFoundById).toBe(false)
+    expect(store.errorById).toBe(
+      'Não foi possível carregar o perfil do profissional. Tente novamente.',
+    )
+  })
+
+  it('does not report a network failure as a missing record', async () => {
+    getProfessionalByIdMock.mockRejectedValue(new Error('Failed to fetch'))
+    const store = useProfessionalsStore()
+
+    await store.loadById('p1')
+
+    expect(store.notFoundById).toBe(false)
+    expect(store.errorById).toBeTruthy()
   })
 })
