@@ -2,15 +2,14 @@
 /** Category filter as a row of chips. */
 import type { ProfessionalCategory } from '@/types/professional'
 
-const props = defineProps<{
-  modelValue: ProfessionalCategory | null
+const model = defineModel<ProfessionalCategory | null>({ required: true })
+
+defineProps<{
   categories: ProfessionalCategory[]
 }>()
 
-const emit = defineEmits<{ 'update:modelValue': [value: ProfessionalCategory | null] }>()
-
 function select(category: ProfessionalCategory | null) {
-  emit('update:modelValue', props.modelValue === category ? null : category)
+  model.value = model.value === category ? null : category
 }
 </script>
 
@@ -20,11 +19,11 @@ function select(category: ProfessionalCategory | null) {
       type="button"
       class="rounded-full px-3 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
       :class="
-        modelValue === null
+        model === null
           ? 'bg-indigo-600 text-white'
           : 'bg-white text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50'
       "
-      :aria-pressed="modelValue === null"
+      :aria-pressed="model === null"
       @click="select(null)"
     >
       Todas
@@ -35,11 +34,11 @@ function select(category: ProfessionalCategory | null) {
       type="button"
       class="rounded-full px-3 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
       :class="
-        modelValue === category
+        model === category
           ? 'bg-indigo-600 text-white'
           : 'bg-white text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50'
       "
-      :aria-pressed="modelValue === category"
+      :aria-pressed="model === category"
       @click="select(category)"
     >
       {{ category }}

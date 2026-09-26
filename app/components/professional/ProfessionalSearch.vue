@@ -1,29 +1,24 @@
 <script setup lang="ts">
-/** Search input with debounce. Emits the debounced value. */
+/** Search input with debounce. Updates the model with the debounced value. */
+const model = defineModel<string>({ required: true })
+
 const props = withDefaults(
   defineProps<{
-    modelValue: string
     debounce?: number
   }>(),
   { debounce: 300 },
 )
 
-const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
-
-const local = ref(props.modelValue)
+const local = ref(model.value)
 
 // Keep the local value in sync when the parent changes it (e.g. URL navigation).
-watch(
-  () => props.modelValue,
-  (value) => {
-    if (value !== local.value) local.value = value
-  },
-)
+watch(model, (value) => {
+  if (value !== local.value) local.value = value
+})
 
-const emitDebounced = useDebounce(
-  (value: string) => emit('update:modelValue', value),
-  props.debounce,
-)
+const emitDebounced = useDebounce((value: string) => {
+  model.value = value
+}, props.debounce)
 
 function onInput(value: string) {
   local.value = value

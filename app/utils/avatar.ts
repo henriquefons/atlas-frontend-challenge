@@ -3,12 +3,20 @@
  * Auto-imported by Nuxt (no manual import needed).
  */
 
-/** Extracts up to two initials from a full name (e.g. "Ana Souza" -> "AS"). */
+/**
+ * Extracts up to two initials from a full name (e.g. "Ana Souza" -> "AS").
+ */
 export function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
-  return `${parts[0]![0]}${parts[parts.length - 1]![0]}`.toUpperCase()
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return '?'
+
+  const firstWord = words[0]!
+  const lastWord = words[words.length - 1]!
+  const isSingleWord = words.length === 1
+
+  const initials = isSingleWord ? firstWord.slice(0, 2) : firstWord[0]! + lastWord[0]!
+
+  return initials.toUpperCase()
 }
 
 /** Palette used for avatar backgrounds. */
