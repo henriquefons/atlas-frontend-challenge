@@ -2,7 +2,9 @@ import type { Professional } from '@/types/professional'
 import professionals from '#data/professionals.json'
 
 /** Professional detail by id. Returns 404 when not found. */
-export default defineEventHandler((event): Professional => {
+export default defineEventHandler(async (event): Promise<Professional> => {
+  await simulateApiLatency()
+
   const id = getRouterParam(event, 'id')
   const professional = (professionals as Professional[]).find((item) => item.id === id)
 

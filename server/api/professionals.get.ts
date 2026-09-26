@@ -19,7 +19,9 @@ const SORTABLE: Record<SortOption, (a: Professional, b: Professional) => number>
  * - page: page number (1-based)
  * - limit: items per page (max. 100)
  */
-export default defineEventHandler((event): ProfessionalsResponse => {
+export default defineEventHandler(async (event): Promise<ProfessionalsResponse> => {
+  await simulateApiLatency()
+
   const query = getQuery(event)
 
   const search = String(query.search ?? '')
