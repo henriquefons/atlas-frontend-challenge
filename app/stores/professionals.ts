@@ -2,39 +2,54 @@
  * Professionals store (Options API).
  *
  * Owns the reactive state for the listing (items, pagination, filters) and
- * orchestrates calls to the API service. Components never call the service
- * directly — they read from this store.
+ * the detail view, orchestrating calls to the API service. Components never
+ * call the service directly — they read from this store.
  */
 import { DEFAULT_LIMIT, DEFAULT_SORT } from '@/constants/professional'
-import { getProfessionals } from '@/services/professionals'
+import { getProfessionalById, getProfessionals } from '@/services/professionals'
 import type { Professional, ProfessionalCategory, SortOption } from '@/types/professional'
 
 interface ProfessionalsState {
+  // --- listing ---
   items: Professional[]
   total: number
   page: number
   limit: number
-  loading: boolean
-  loadingMore: boolean
-  error: string | null
   search: string
   category: ProfessionalCategory | null
   sort: SortOption
+
+  // --- detail ---
+  professional: Professional | null
+
+  // --- status ---
+  loadingProfessionals: boolean
+  loadingMore: boolean
+  loadingById: boolean
+  errorProfessionals: string | null
+  errorById: string | null
 }
 
 export const useProfessionalsStore = defineStore('professionals', {
   state: (): ProfessionalsState => ({
+    // listing
     items: [],
     total: 0,
     page: 1,
     limit: DEFAULT_LIMIT,
-    loading: false,
-    loadingMore: false,
-    error: null,
-    // filters
     search: '',
     category: null,
     sort: DEFAULT_SORT,
+
+    // detail
+    professional: null,
+
+    // status
+    loadingProfessionals: false,
+    loadingMore: false,
+    loadingById: false,
+    errorProfessionals: null,
+    errorById: null,
   }),
 
   getters: {
@@ -42,7 +57,8 @@ export const useProfessionalsStore = defineStore('professionals', {
     hasMore: (state) => state.items.length < state.total,
 
     /** Whether the listing is empty (and not loading/erroring). */
-    isEmpty: (state) => !state.loading && !state.error && state.items.length === 0,
+    isEmpty: (state) =>
+      !state.loadingProfessionals && !state.errorProfessionals && state.items.length === 0,
 
     /** Whether any filter is currently applied. */
     hasActiveFilters: (state) => state.search.trim() !== '' || state.category !== null,
@@ -62,18 +78,18 @@ export const useProfessionalsStore = defineStore('professionals', {
 
     /** Loads the first page, replacing the current items. */
     async getProfessionals() {
-      this.loading = true
-      this.error = null
+      this.loadingProfessionals = true
+      this.errorProfessionals = null
       try {
         const res = await getProfessionals(this.buildQuery())
         this.items = res.items
         this.total = res.total
       } catch {
-        this.error = 'Não foi possível carregar os profissionais. Tente novamente.'
+        this.errorProfessionals = 'Não foi possível carregar os profissionais. Tente novamente.'
         this.items = []
         this.total = 0
       } finally {
-        this.loading = false
+        this.loadingProfessionals = false
       }
     },
 
@@ -81,7 +97,7 @@ export const useProfessionalsStore = defineStore('professionals', {
     async getMoreProfessionals() {
       if (this.loadingMore || !this.hasMore) return
       this.loadingMore = true
-      this.error = null
+      this.errorProfessionals = null
       try {
         this.page += 1
         const res = await getProfessionals(this.buildQuery())
@@ -89,9 +105,23 @@ export const useProfessionalsStore = defineStore('professionals', {
         this.total = res.total
       } catch {
         this.page -= 1
-        this.error = 'Não foi possível carregar mais profissionais.'
+        this.errorProfessionals = 'Não foi possível carregar mais profissionais.'
       } finally {
         this.loadingMore = false
+      }
+    },
+
+    /** Loads a single professional by id into `professional`. */
+    async getProfessionalById(id: string) {
+      this.loadingById = true
+      this.errorById = null
+      try {
+        this.professional = await getProfessionalById(id)
+      } catch {
+        this.professional = null
+        this.errorById = 'Profissional não encontrado.'
+      } finally {
+        this.loadingById = false
       }
     },
 

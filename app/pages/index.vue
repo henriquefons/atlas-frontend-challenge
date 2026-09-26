@@ -24,14 +24,23 @@ function readFromUrl() {
   store.sort = isSortOption(sort) ? sort : DEFAULT_SORT
 }
 
-/** Writes the current filters to the URL (without triggering a reload). */
-function writeToUrl() {
-  router.replace({
-    query: {
-      ...(store.search ? { search: store.search } : {}),
-      ...(store.category ? { category: store.category } : {}),
-      ...(store.sort !== DEFAULT_SORT ? { sort: store.sort } : {}),
-    },
+/** Serializes the current filters into a URL query object. */
+function currentQuery() {
+  return {
+    ...(store.search ? { search: store.search } : {}),
+    ...(store.category ? { category: store.category } : {}),
+    ...(store.sort !== DEFAULT_SORT ? { sort: store.sort } : {}),
+  }
+}
+
+/** Whether the URL query already matches the current filters. */
+function queryMatchesFilters() {
+  const query = currentQuery()
+  const keys = new Set([...Object.keys(query), ...Object.keys(route.query)])
+  return [...keys].every((key) => {
+    const a = (query as Record<string, unknown>)[key]
+    const b = route.query[key]
+    return (a ?? '') === (b ?? '')
   })
 }
 
@@ -42,16 +51,15 @@ await useAsyncData('professionals', async () => {
   return true
 })
 
-// React to filter changes: update URL and reload from the first page.
+// Filters changed by the user are pushed to the URL
 watch(
   () => [store.search, store.category, store.sort],
-  async () => {
-    writeToUrl()
-    await store.reset()
+  () => {
+    if (queryMatchesFilters()) return
+    router.replace({ query: currentQuery() })
   },
 )
 
-// React to browser back/forward navigation.
 watch(
   () => route.query,
   async () => {
@@ -61,7 +69,7 @@ watch(
 )
 
 const resultsLabel = computed(() => {
-  if (store.loading) return 'Carregando...'
+  if (store.loadingProfessionals) return 'Carregando...'
   const count = store.total
   return count === 1 ? '1 profissional encontrado' : `${count} profissionais encontrados`
 })
@@ -104,13 +112,13 @@ const resultsLabel = computed(() => {
     <!-- List -->
     <ProfessionalList
       :items="store.items"
-      :loading="store.loading"
-      :error="store.error"
+      :loading="store.loadingProfessionals"
+      :error="store.errorProfessionals"
       @retry="store.getProfessionals()"
     />
 
     <!-- Load more -->
-    <div v-if="store.hasMore && !store.loading" class="mt-8 flex justify-center">
+    <div v-if="store.hasMore && !store.loadingProfessionals" class="mt-8 flex justify-center">
       <BaseButton
         variant="secondary"
         :loading="store.loadingMore"

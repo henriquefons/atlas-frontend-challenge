@@ -9,10 +9,13 @@ const route = useRoute()
 const store = useProfessionalsStore()
 const id = route.params.id as string
 
-await useAsyncData(`professional-${id}`, () => store.getProfessionalById(id))
+await useAsyncData(`professional-${id}`, async () => {
+  await store.getProfessionalById(id)
+  return store.professional
+})
 
 // Real HTTP 404 (correct status for SEO and crawlers).
-if (store.error.byId || !store.professional) {
+if (store.errorById || !store.professional) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Profissional não encontrado',
