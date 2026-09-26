@@ -111,6 +111,46 @@ const DESCRIPTION_TEMPLATES = [
   'Sou {profession} e ofereço serviços de {category} com atenção aos detalhes. Mais de {years} anos ajudando clientes na região.',
 ]
 
+/** imgix params: 160×160, face-aware crop, modern formats (`auto=format`). */
+const AVATAR_PARAMS = 'auto=format&fit=crop&crop=faces&w=160&h=160&q=80'
+const avatarPhotoUrl = (id) => `https://images.unsplash.com/photo-${id}?${AVATAR_PARAMS}`
+
+const FEMALE_AVATAR_IDS = [
+  '1502685104226-ee32379fefbe',
+  '1494790108377-be9c29b29330',
+  '1438761681033-6461ffad8d80',
+  '1534528741775-53994a69daeb',
+  '1544005313-94ddf0286df2',
+  '1517841905240-472988babdf9',
+  '1524504388940-b1c1722653e1',
+  '1573496359142-b8d87734a5a2',
+  '1580489944761-15a19d654956',
+  '1607746882042-944635dfe10e',
+  '1544723795-3fb6469f5b39',
+]
+
+const MALE_AVATAR_IDS = [
+  '1507003211169-0a1dd7228f2d',
+  '1500648767791-00dcc994a43e',
+  '1547425260-76bcadfb4f2c',
+  '1552058544-f2b08422138a',
+  '1531427186611-ecfd6d936c79',
+  '1519085360753-af0119f7cbe7',
+  '1560250097-0b93528c311a',
+  '1568602471122-7832951cc4c5',
+  '1599566150163-29194dcaad36',
+  '1633332755192-727a05c4013d',
+  '1463453091185-61582044d556',
+  '1472099645785-5658abf4ff4e',
+  '1506794778202-cad84cf45f1d',
+]
+
+const BROKEN_AVATAR_URLS = [
+  'https://images.unsplash.com/photo-0000000000000-000000000000?auto=format&w=160&h=160&q=80',
+  'https://images.unsplash.com/avatar-inexistente.jpg',
+  'https://cdn.exemplo-invalido.dev/avatar.jpg',
+]
+
 /** Rounds to 2 decimal places. */
 const round2 = (value) => Math.round(value * 100) / 100
 
@@ -130,12 +170,22 @@ function buildProfessional(index) {
     .replaceAll('{category}', category)
     .replaceAll('{years}', String(faker.number.int({ min: 1, max: 20 })))
 
-  return {
-    id: `pro-${String(index + 1).padStart(4, '0')}`,
-    name: faker.person.fullName(),
+  const professionalId = `pro-${String(index + 1).padStart(4, '0')}`
+
+  const sex = faker.person.sexType() // 'female' | 'male'
+  const name = faker.person.fullName({ sex })
+
+  const validPhotoIds = sex === 'female' ? FEMALE_AVATAR_IDS : MALE_AVATAR_IDS
+  const validUrls = validPhotoIds.map(avatarPhotoUrl)
+
+  const avatarUrl = faker.helpers.arrayElement([...validUrls, ...BROKEN_AVATAR_URLS])
+
+  const professional = {
+    id: professionalId,
+    name,
     profession,
     category,
-    avatarUrl: null,
+    avatarUrl,
     price: round2(faker.number.float({ min: price[0], max: price[1], fractionDigits: 2 })),
     rating: round2(faker.number.float({ min: 3, max: 5, fractionDigits: 1 })),
     distanceKm: round2(faker.number.float({ min: 0.5, max: 40, fractionDigits: 1 })),
@@ -144,6 +194,8 @@ function buildProfessional(index) {
     services,
     availability: faker.helpers.arrayElement(AVAILABILITY_OPTIONS),
   }
+
+  return professional
 }
 
 function main() {
