@@ -2,71 +2,72 @@
 /**
  * Professionals listing page.
  *
- * Orchestrates the store: reads/writes filters to the URL, triggers loads
- * and renders the list. Components stay presentational.
+ * Orchestrates the professionalStore: syncs the filters with the URL, triggers
+ * loads and renders the list. Components stay presentational.
  */
-import {
-  DEFAULT_SORT,
-  isProfessionalCategory,
-  isSortOption,
-  PROFESSIONAL_CATEGORIES,
-} from '@/constants/professional'
+import { PROFESSIONAL_CATEGORIES } from '@/constants/professional'
 
-const store = useProfessionalsStore()
+const professionalStore = useProfessionalsStore()
 const route = useRoute()
-const router = useRouter()
+const { syncFromUrl } = useListingQuerySync()
 
-/** Reads the filters from the URL query into the store. */
-function readFromUrl() {
-  const { search, category, sort } = route.query
-  store.search = typeof search === 'string' ? search : ''
-  store.category = isProfessionalCategory(category) ? category : null
-  store.sort = isSortOption(sort) ? sort : DEFAULT_SORT
-}
+// Everything reactive is registered before the first `await`: hooks added after
+// an await in setup() are dropped, so the observer would never start.
 
-/** Serializes the current filters into a URL query object. */
-function currentQuery() {
-  return {
-    ...(store.search ? { search: store.search } : {}),
-    ...(store.category ? { category: store.category } : {}),
-    ...(store.sort !== DEFAULT_SORT ? { sort: store.sort } : {}),
-  }
-}
+/** Sentinel element observed to load the next page. */
+const loadMoreTrigger = ref<Element | null>(null)
 
-/** Whether the URL query already matches the current filters. */
-function queryMatchesFilters() {
-  const query = currentQuery()
-  const keys = new Set([...Object.keys(query), ...Object.keys(route.query)])
-  return [...keys].every((key) => {
-    const a = (query as Record<string, unknown>)[key]
-    const b = route.query[key]
-    return (a ?? '') === (b ?? '')
-  })
-}
+const { supported: infiniteScrollSupported } = useInfiniteScroll(
+  loadMoreTrigger,
+  () => professionalStore.loadNextPage(),
+  {
+    enabled: () =>
+      professionalStore.hasMore &&
+      professionalStore.loading === 'idle' &&
+      !professionalStore.errorFirst &&
+      !professionalStore.errorNext,
+    // Appending items is what can push the sentinel back into the viewport.
+    watch: () => professionalStore.items.length,
+  },
+)
 
-// Initial load (SSR-friendly) + reload whenever the URL changes.
+// Initial load + reload when the URL changes. Unchanged filters are a no-op, so
+// coming back from a profile keeps the items and the restored scroll. The
+// `true` is deliberate: the store already holds the items, so returning them
+// would duplicate the array in the SSR payload.
 await useAsyncData(
   'professionals',
   async () => {
-    readFromUrl()
-    await store.reset()
+    syncFromUrl()
+    await professionalStore.loadFirstPage()
     return true
   },
   { watch: [() => route.fullPath] },
 )
 
-watch(
-  () => [store.search, store.category, store.sort],
-  () => {
-    if (queryMatchesFilters()) return
-    router.replace({ query: currentQuery() })
-  },
-)
-
 const resultsLabel = computed(() => {
-  if (store.loadingProfessionals) return 'Carregando...'
-  const count = store.total
-  return count === 1 ? '1 profissional encontrado' : `${count} profissionais encontrados`
+  if (professionalStore.isLoadingFirst) return 'Carregando...'
+  if (professionalStore.errorFirst) return 'Não foi possível carregar a lista'
+  if (professionalStore.isEmpty) return 'Nenhum resultado'
+  if (professionalStore.total === 1) return '1 profissional encontrado'
+  return `Mostrando ${professionalStore.items.length} de ${professionalStore.total} profissionais`
+})
+
+/** Only offer "back to top" once the list is long enough to need it. */
+const showBackToTop = computed(() => professionalStore.items.length >= 40)
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// States overlap (e.g. a reload with `total` from the previous filters), so
+// this is one computed instead of a `v-if` chain in the template.
+const footerState = computed(() => {
+  if (professionalStore.isLoadingNext) return 'loading-more'
+  if (professionalStore.errorNext) return 'error-more'
+  if (professionalStore.isLoadingFirst || professionalStore.errorFirst || professionalStore.isEmpty)
+    return 'idle'
+  return professionalStore.hasMore ? 'can-load-more' : 'done'
 })
 </script>
 
@@ -84,21 +85,24 @@ const resultsLabel = computed(() => {
     <section class="mb-6 space-y-4" aria-label="Busca e filtros">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
         <div class="sm:col-span-2">
-          <ProfessionalSearch v-model="store.search" />
+          <ProfessionalSearch v-model="professionalStore.search" />
         </div>
-        <ProfessionalSort v-model="store.sort" />
+        <ProfessionalSort v-model="professionalStore.sort" />
       </div>
-      <ProfessionalFilters v-model="store.category" :categories="PROFESSIONAL_CATEGORIES" />
+      <ProfessionalFilters
+        v-model="professionalStore.category"
+        :categories="PROFESSIONAL_CATEGORIES"
+      />
     </section>
 
     <!-- Results summary -->
     <div class="mb-4 flex items-center justify-between">
       <p class="text-sm text-slate-600" aria-live="polite">{{ resultsLabel }}</p>
       <BaseButton
-        v-if="store.hasActiveFilters"
+        v-if="professionalStore.hasActiveFilters"
         variant="ghost"
         size="sm"
-        @click="store.clearFilters()"
+        @click="professionalStore.clearFilters()"
       >
         Limpar filtros
       </BaseButton>
@@ -106,21 +110,60 @@ const resultsLabel = computed(() => {
 
     <!-- List -->
     <ProfessionalList
-      :items="store.items"
-      :loading="store.loadingProfessionals"
-      :error="store.errorProfessionals"
-      @retry="store.getProfessionals()"
+      :items="professionalStore.items"
+      :loading="professionalStore.isLoadingFirst"
+      :loading-more="professionalStore.isLoadingNext"
+      :error="professionalStore.errorFirst"
+      @retry="professionalStore.loadFirstPage({ force: true })"
     />
 
-    <!-- Load more -->
-    <div v-if="store.hasMore && !store.loadingProfessionals" class="mt-8 flex justify-center">
+    <!--
+      Infinite scroll sentinel, with a button fallback when IntersectionObserver
+      is unavailable. The reserved height avoids a layout shift.
+    -->
+    <div
+      ref="loadMoreTrigger"
+      class="mt-8 flex min-h-[44px] items-center justify-center"
+      aria-live="polite"
+    >
+      <p v-if="footerState === 'loading-more'" class="text-sm text-slate-500">
+        Carregando mais profissionais...
+      </p>
+
+      <div v-else-if="footerState === 'error-more'" class="text-center">
+        <p class="text-sm font-medium text-red-700">{{ professionalStore.errorNext }}</p>
+        <BaseButton
+          class="mt-2"
+          size="sm"
+          variant="secondary"
+          @click="professionalStore.loadNextPage()"
+        >
+          Tentar novamente
+        </BaseButton>
+      </div>
+
       <BaseButton
+        v-else-if="footerState === 'can-load-more'"
+        v-show="!infiniteScrollSupported"
         variant="secondary"
-        :loading="store.loadingMore"
-        @click="store.getMoreProfessionals()"
+        @click="professionalStore.loadNextPage()"
       >
         Carregar mais
       </BaseButton>
+
+      <p v-else-if="footerState === 'done'" class="text-sm text-slate-500">
+        Você viu todos os {{ professionalStore.total }} profissionais
+      </p>
     </div>
+
+    <BaseButton
+      v-if="showBackToTop"
+      class="fixed bottom-6 right-6 z-10 shadow-lg"
+      variant="secondary"
+      size="sm"
+      @click="scrollToTop"
+    >
+      Voltar ao topo
+    </BaseButton>
   </main>
 </template>

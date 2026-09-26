@@ -24,15 +24,15 @@ export default defineEventHandler(async (event): Promise<ProfessionalsResponse> 
 
   const query = getQuery(event)
 
-  const search = String(query.search ?? '')
+  const search = String(query.search || '')
     .trim()
     .toLowerCase()
   const category = query.category ? String(query.category) : undefined
-  const sort = (query.sort as SortOption | undefined) ?? undefined
-  const page = Math.max(1, Number.parseInt(String(query.page ?? '1'), 10) || 1)
+  const sort = (query.sort as SortOption | undefined) || undefined
+  const page = Math.max(1, Number.parseInt(String(query.page || '1'), 10) || 1)
   const limit = Math.min(
     MAX_LIMIT,
-    Math.max(1, Number.parseInt(String(query.limit ?? DEFAULT_LIMIT), 10) || DEFAULT_LIMIT),
+    Math.max(1, Number.parseInt(String(query.limit || DEFAULT_LIMIT), 10) || DEFAULT_LIMIT),
   )
 
   let items = professionals as Professional[]

@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  /*
+   * Skips layout/paint for the cards outside the viewport and keeps the
+   * scrollbar stable while they are skipped (`auto` remembers their real
+   * height). 260px is the estimated card height; recalibrate if it changes.
+   */
+  .card-cv {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 260px;
+    contain: layout paint style;
+  }
+}

@@ -6,16 +6,17 @@
  * throws a real 404 when the professional does not exist.
  */
 const route = useRoute()
-const store = useProfessionalsStore()
+const router = useRouter()
+const professionalStore = useProfessionalsStore()
 const id = route.params.id as string
 
 await useAsyncData(`professional-${id}`, async () => {
-  await store.getProfessionalById(id)
-  return store.professional
+  await professionalStore.loadById(id)
+  return professionalStore.professional
 })
 
 // Real HTTP 404 (correct status for SEO and crawlers).
-if (store.errorById || !store.professional) {
+if (professionalStore.errorById || !professionalStore.professional) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Profissional não encontrado',
@@ -23,7 +24,24 @@ if (store.errorById || !store.professional) {
   })
 }
 
-const professional = computed(() => store.professional!)
+const professional = computed(() => professionalStore.professional!)
+
+/**
+ * Makes vue-router hand `savedPosition` to Nuxt's scrollBehavior and restore
+ * the scroll position. Otherwise it lets the browser follow the `href`.
+ */
+function handleBack(event: MouseEvent) {
+  // Modifiers and middle click keep the native behaviour (new tab).
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return
+
+  const back = (window.history.state as { back?: string } | null)?.back
+  if (!back) return // direct visit: nothing cached to restore, `href` loads the listing
+
+  event.preventDefault()
+  // Only a listing entry restores the scroll; another profile would not.
+  if (back === '/' || back.startsWith('/?')) router.back()
+  else router.push('/')
+}
 
 useSeoMeta({
   title: () => `${professional.value.name} — ${professional.value.profession}`,
@@ -34,9 +52,10 @@ useSeoMeta({
 <template>
   <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
     <!-- Back link -->
-    <NuxtLink
-      to="/"
+    <a
+      href="/"
       class="mb-4 inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+      @click="handleBack"
     >
       <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path
@@ -46,7 +65,7 @@ useSeoMeta({
         />
       </svg>
       Voltar para a listagem
-    </NuxtLink>
+    </a>
 
     <div class="space-y-5">
       <ProfessionalProfileHeader :professional="professional" />
