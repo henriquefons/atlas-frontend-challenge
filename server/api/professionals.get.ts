@@ -1,13 +1,6 @@
-import { DEFAULT_LIMIT, MAX_LIMIT } from '@/constants/professional'
-import type { Professional, ProfessionalsResponse, SortOption } from '@/types/professional'
+import type { Professional, ProfessionalsResponse } from '@/types/professional'
 import professionals from '#data/professionals.json'
-
-const SORTABLE: Record<SortOption, (a: Professional, b: Professional) => number> = {
-  price_asc: (a, b) => a.price - b.price,
-  price_desc: (a, b) => b.price - a.price,
-  rating: (a, b) => b.rating - a.rating,
-  distance: (a, b) => a.distanceKm - b.distanceKm,
-}
+import { parseProfessionalsQuery, queryProfessionals } from '../utils/professionalsQuery'
 
 /**
  * Paginated listing of professionals.
@@ -22,46 +15,8 @@ const SORTABLE: Record<SortOption, (a: Professional, b: Professional) => number>
 export default defineEventHandler(async (event): Promise<ProfessionalsResponse> => {
   await simulateApiLatency()
 
-  const query = getQuery(event)
-
-  const search = String(query.search || '')
-    .trim()
-    .toLowerCase()
-  const category = query.category ? String(query.category) : undefined
-  const sort = (query.sort as SortOption | undefined) || undefined
-  const page = Math.max(1, Number.parseInt(String(query.page || '1'), 10) || 1)
-  const limit = Math.min(
-    MAX_LIMIT,
-    Math.max(1, Number.parseInt(String(query.limit || DEFAULT_LIMIT), 10) || DEFAULT_LIMIT),
+  return queryProfessionals(
+    professionals as Professional[],
+    parseProfessionalsQuery(getQuery(event)),
   )
-
-  let items = professionals as Professional[]
-
-  if (category) {
-    items = items.filter((item) => item.category === category)
-  }
-
-  if (search) {
-    items = items.filter(
-      (item) =>
-        item.name.toLowerCase().includes(search) || item.profession.toLowerCase().includes(search),
-    )
-  }
-
-  if (sort && SORTABLE[sort]) {
-    items = [...items].sort(SORTABLE[sort])
-  }
-
-  const total = items.length
-  const totalPages = Math.max(1, Math.ceil(total / limit))
-  const start = (page - 1) * limit
-  const paginated = items.slice(start, start + limit)
-
-  return {
-    items: paginated,
-    total,
-    page,
-    limit,
-    totalPages,
-  }
 })
