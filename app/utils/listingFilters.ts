@@ -1,30 +1,34 @@
-/**
- * The listing filter contract.
- *
- * Single place that knows which query params describe the listing, so the
- * store, the page and the URL stay in sync when a filter is added.
- */
+/** The listing filter contract: the single place that knows the listing's query params. */
 import { DEFAULT_SORT, isProfessionalCategory, isSortOption } from '@/constants/professional'
 import type { ProfessionalCategory, SortOption } from '@/types/professional'
 import type { LocationQuery, LocationQueryRaw } from 'vue-router'
 
-/** Filters that describe a listing query. */
 export interface ListingFilters {
   search: string
   category: ProfessionalCategory | null
   sort: SortOption
 }
 
-/** Reads the filters out of any compatible source (e.g. the store). */
+/** Canonical form: `search` is trimmed once, so request, URL and fetch identity agree. */
 export function listingFiltersOf(source: ListingFilters): ListingFilters {
-  return { search: source.search, category: source.category, sort: source.sort }
+  return { search: source.search.trim(), category: source.category, sort: source.sort }
+}
+
+/** Compares filters by value. */
+export function sameFilters(a: ListingFilters, b: ListingFilters): boolean {
+  return a.search === b.search && a.category === b.category && a.sort === b.sort
+}
+
+/** Identity of a fetch: the normalized filters as a single string. */
+export function filterKey(filters: ListingFilters): string {
+  return `${filters.search}|${filters.category ?? ''}|${filters.sort}`
 }
 
 /** Builds the filters from a route query, falling back to the defaults. */
 export function parseListingFilters(query: LocationQuery): ListingFilters {
   const { search, category, sort } = query
   return {
-    search: typeof search === 'string' ? search : '',
+    search: typeof search === 'string' ? search.trim() : '',
     category: isProfessionalCategory(category) ? category : null,
     sort: isSortOption(sort) ? sort : DEFAULT_SORT,
   }
@@ -39,16 +43,11 @@ export function serializeListingFilters(filters: ListingFilters): LocationQueryR
   }
 }
 
-/**
- * Whether the filter part of `query` already matches `filters`. Unknown params
- * count as a mismatch, so the URL gets normalized once.
- */
+/** Whether `query` already expresses exactly these filters (leftovers count as a mismatch). */
 export function queryMatchesFilters(query: LocationQuery, filters: ListingFilters): boolean {
   const serialized = serializeListingFilters(filters)
-  const keys = new Set([...Object.keys(serialized), ...Object.keys(query)])
-  return [...keys].every((key) => {
-    const current = (serialized as Record<string, unknown>)[key]
-    const next = query[key]
-    return (current || '') === (next || '')
-  })
+  return (
+    sameFilters(parseListingFilters(query), filters) &&
+    Object.keys(query).every((key) => key in serialized)
+  )
 }
