@@ -43,6 +43,8 @@ const distance = computed(() => formatDistance(props.professional.distanceKm))
       <BaseBadge>{{ professional.city }}</BaseBadge>
     </div>
 
+    <div class="flex-1" />
+
     <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
       <div>
         <span class="text-xs text-slate-500">A partir de</span>
