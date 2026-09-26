@@ -128,45 +128,40 @@ describe('loadById', () => {
     await store.loadById('p1')
 
     expect(store.professional?.id).toBe('p1')
-    expect(store.errorById).toBeNull()
-    expect(store.notFoundById).toBe(false)
     expect(store.loading).toBe('idle')
   })
 
-  it('treats a 404 as a missing record', async () => {
+  it('throws a 404 when the API says the record is missing', async () => {
     getProfessionalByIdMock.mockRejectedValue(
       Object.assign(new Error('[GET] 404'), { statusCode: 404 }),
     )
     const store = useProfessionalsStore()
 
-    await store.loadById('desconhecido')
+    await expect(store.loadById('desconhecido')).rejects.toMatchObject({
+      statusCode: 404,
+      statusMessage: 'Profissional não encontrado',
+    })
 
     expect(store.professional).toBeNull()
-    expect(store.notFoundById).toBe(true)
-    expect(store.errorById).toBe('Profissional não encontrado.')
+    expect(store.loading).toBe('idle')
   })
 
-  it('does not report a server failure as a missing record', async () => {
+  it('never reports a server failure as a missing record', async () => {
     getProfessionalByIdMock.mockRejectedValue(
       Object.assign(new Error('[GET] 500'), { response: { status: 500 } }),
     )
     const store = useProfessionalsStore()
 
-    await store.loadById('p1')
-
-    expect(store.notFoundById).toBe(false)
-    expect(store.errorById).toBe(
-      'Não foi possível carregar o perfil do profissional. Tente novamente.',
-    )
+    await expect(store.loadById('p1')).rejects.toMatchObject({
+      statusCode: 500,
+      statusMessage: 'Não foi possível carregar o perfil do profissional',
+    })
   })
 
-  it('does not report a network failure as a missing record', async () => {
+  it('never reports a network failure as a missing record', async () => {
     getProfessionalByIdMock.mockRejectedValue(new Error('Failed to fetch'))
     const store = useProfessionalsStore()
 
-    await store.loadById('p1')
-
-    expect(store.notFoundById).toBe(false)
-    expect(store.errorById).toBeTruthy()
+    await expect(store.loadById('p1')).rejects.toMatchObject({ statusCode: 500 })
   })
 })
