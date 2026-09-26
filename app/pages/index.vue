@@ -1,20 +1,12 @@
 <script setup lang="ts">
-/**
- * Professionals listing page.
- *
- * Orchestrates the professionalStore: syncs the filters with the URL, triggers
- * loads and renders the list. Components stay presentational.
- */
+/** Listing page: syncs the filters with the URL, triggers the loads, renders the list. */
 import { PROFESSIONAL_CATEGORIES } from '@/constants/professional'
 
 const professionalStore = useProfessionalsStore()
 const route = useRoute()
 const { syncFromUrl } = useListingQuerySync()
 
-// Everything reactive is registered before the first `await`: hooks added after
-// an await in setup() are dropped, so the observer would never start.
-
-/** Sentinel element observed to load the next page. */
+// Register hooks before the first `await` (hooks added after it are dropped).
 const loadMoreTrigger = ref<Element | null>(null)
 
 const { supported: infiniteScrollSupported } = useInfiniteScroll(
@@ -26,15 +18,14 @@ const { supported: infiniteScrollSupported } = useInfiniteScroll(
       professionalStore.loading === 'idle' &&
       !professionalStore.errorFirst &&
       !professionalStore.errorNext,
-    // Appending items is what can push the sentinel back into the viewport.
+    // Appending items can push the sentinel back into view.
     watch: () => professionalStore.items.length,
   },
 )
 
-// Initial load + reload when the URL changes. Unchanged filters are a no-op, so
-// coming back from a profile keeps the items and the restored scroll. The
-// `true` is deliberate: the store already holds the items, so returning them
-// would duplicate the array in the SSR payload.
+// URL-driven reload; unchanged filters are a no-op (coming back from a profile
+// keeps the items and the scroll). `true` avoids duplicating the payload (the
+// store already holds the items).
 await useAsyncData(
   'professionals',
   async () => {
@@ -53,15 +44,14 @@ const resultsLabel = computed(() => {
   return `Mostrando ${professionalStore.items.length} de ${professionalStore.total} profissionais`
 })
 
-/** Only offer "back to top" once the list is long enough to need it. */
+/** Only worth showing once the list is long enough. */
 const showBackToTop = computed(() => professionalStore.items.length >= 40)
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// States overlap (e.g. a reload with `total` from the previous filters), so
-// this is one computed instead of a `v-if` chain in the template.
+// One computed instead of a `v-if` chain: the states overlap.
 const footerState = computed(() => {
   if (professionalStore.isLoadingNext) return 'loading-more'
   if (professionalStore.errorNext) return 'error-more'
@@ -73,7 +63,6 @@ const footerState = computed(() => {
 
 <template>
   <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <!-- Header -->
     <header class="mb-6">
       <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">Catálogo de Profissionais</h1>
       <p class="mt-1 text-slate-600">
@@ -81,7 +70,6 @@ const footerState = computed(() => {
       </p>
     </header>
 
-    <!-- Controls -->
     <section class="mb-6 space-y-4" aria-label="Busca e filtros">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
         <div class="sm:col-span-2">
@@ -95,7 +83,6 @@ const footerState = computed(() => {
       />
     </section>
 
-    <!-- Results summary -->
     <div class="mb-4 flex items-center justify-between">
       <p class="text-sm text-slate-600" aria-live="polite">{{ resultsLabel }}</p>
       <BaseButton
@@ -108,7 +95,6 @@ const footerState = computed(() => {
       </BaseButton>
     </div>
 
-    <!-- List -->
     <ProfessionalList
       :items="professionalStore.items"
       :loading="professionalStore.isLoadingFirst"
@@ -117,10 +103,7 @@ const footerState = computed(() => {
       @retry="professionalStore.loadFirstPage({ force: true })"
     />
 
-    <!--
-      Infinite scroll sentinel, with a button fallback when IntersectionObserver
-      is unavailable. The reserved height avoids a layout shift.
-    -->
+    <!-- Sentinel with a button fallback; the reserved height avoids a layout shift. -->
     <div
       ref="loadMoreTrigger"
       class="mt-8 flex min-h-[44px] items-center justify-center"

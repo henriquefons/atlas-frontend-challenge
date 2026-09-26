@@ -1,12 +1,6 @@
 /**
- * Generates the mock professionals catalog into `data/professionals.json`.
- *
- * Decisions:
- * - Faker.js with a fixed seed => deterministic data (same JSON on every run).
- * - pt_BR locale => realistic names and cities.
- * - General segment: multiple categories, each with its own professions and price range.
- *
- * Usage: npm run generate:data
+ * Generates the mock catalog into `data/professionals.json`.
+ * Fixed faker seed + pt_BR locale => deterministic data. Usage: npm run generate:data
  */
 import { faker } from '@faker-js/faker/locale/pt_BR'
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -108,7 +102,7 @@ const SERVICE_SUFFIXES = [
   'Pacote mensal',
 ]
 
-/** pt-BR description templates (faker.lorem outputs Latin, so we use templates). */
+/** pt-BR description templates (faker.lorem outputs Latin). */
 const DESCRIPTION_TEMPLATES = [
   'Profissional de {profession} com {years} anos de experiência em {category}. Atende com pontualidade e foco na satisfação do cliente.',
   '{profession} dedicado(a), especializado(a) em {category}. Trabalha com materiais de qualidade e oferece garantia no serviço.',
@@ -117,10 +111,9 @@ const DESCRIPTION_TEMPLATES = [
   'Sou {profession} e ofereço serviços de {category} com atenção aos detalhes. Mais de {years} anos ajudando clientes na região.',
 ]
 
-/** Rounds a number to 2 decimal places. */
+/** Rounds to 2 decimal places. */
 const round2 = (value) => Math.round(value * 100) / 100
 
-/** Builds a random professional (deterministic thanks to the seed). */
 function buildProfessional(index) {
   const categories = Object.keys(CATALOG)
   const category = faker.helpers.arrayElement(categories)

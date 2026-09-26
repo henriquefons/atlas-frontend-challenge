@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Category filter as a row of chips. */
 import type { ProfessionalCategory } from '@/types/professional'
 
 const model = defineModel<ProfessionalCategory | null>({ required: true })

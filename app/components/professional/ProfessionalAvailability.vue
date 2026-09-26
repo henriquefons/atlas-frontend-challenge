@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Availability schedule of the professional. */
 defineProps<{ availability: string[] }>()
 </script>
 

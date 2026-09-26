@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Text input with optional label and icon slot. */
 const model = defineModel<string>({ required: true })
 
 withDefaults(

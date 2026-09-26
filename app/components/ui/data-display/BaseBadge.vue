@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Small pill label. */
 withDefaults(
   defineProps<{
     variant?: 'neutral' | 'primary' | 'success'

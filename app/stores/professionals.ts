@@ -1,15 +1,10 @@
-/**
- * Professionals store (Options API).
- *
- * Owns the reactive state for the listing (items, pagination, filters) and
- * the detail view, orchestrating calls to the API service. Components never
- * call the service directly — they read from this store.
- */
+/** Listing + detail state. Components read from here; only this store calls the API service. */
 import { DEFAULT_LIMIT, DEFAULT_SORT } from '@/constants/professional'
 import { getProfessionalById, getProfessionals } from '@/services/professionals'
 import type { Professional, ProfessionalCategory, SortOption } from '@/types/professional'
+import { filterKey, listingFiltersOf } from '@/utils/listingFilters'
 
-/** A single request is in flight at a time, so the guards cannot conflict. */
+/** One request in flight at a time, so the guards cannot conflict. */
 type LoadingState = 'idle' | 'first' | 'next' | 'detail'
 
 interface ProfessionalsState {
@@ -20,7 +15,7 @@ interface ProfessionalsState {
   search: string
   category: ProfessionalCategory | null
   sort: SortOption
-  /** Signature of the filters whose results are currently loaded. */
+  /** `filterKey` of the filters whose results are currently loaded. */
   appliedSignature: string
 
   // --- detail ---
@@ -55,22 +50,19 @@ export const useProfessionalsStore = defineStore('professionals', {
   }),
 
   getters: {
-    /** Whether there are more pages to load. */
     hasMore: (state) => state.items.length < state.total,
 
-    /** Whether the listing is empty (and neither loading nor failed). */
+    /** Empty, not loading and not failed. */
     isEmpty: (state) => state.loading !== 'first' && !state.errorFirst && state.items.length === 0,
 
-    /** Whether any filter is currently applied. */
     hasActiveFilters: (state) => state.search.trim() !== '' || state.category !== null,
 
-    /** Flattened for the templates: one state, two readable flags. */
+    /** One state, two flags for the templates. */
     isLoadingFirst: (state) => state.loading === 'first',
     isLoadingNext: (state) => state.loading === 'next',
   },
 
   actions: {
-    /** Builds the query object sent to the API. */
     buildQuery() {
       return {
         search: this.search.trim() || undefined,
@@ -81,11 +73,8 @@ export const useProfessionalsStore = defineStore('professionals', {
       }
     },
 
-    /** Loads the next page and appends the results. */
     async loadNextPage() {
-      // One request at a time: appending while the first page is being replaced
-      // would race with it (the list is momentarily empty and `total` still
-      // holds the value of the previous filters).
+      // Appending while page 1 is being replaced would race with it.
       if (this.loading !== 'idle' || !this.hasMore) return
 
       this.loading = 'next'
@@ -103,7 +92,6 @@ export const useProfessionalsStore = defineStore('professionals', {
       }
     },
 
-    /** Loads a single professional by id into `professional`. */
     async loadById(id: string) {
       this.loading = 'detail'
       this.errorById = null
@@ -117,24 +105,15 @@ export const useProfessionalsStore = defineStore('professionals', {
       }
     },
 
-    /** Signature of the current filters, independent of pagination. */
-    buildSignature() {
-      return `${this.search.trim()}|${this.category || ''}|${this.sort}`
-    },
-
     /**
-     * Loads the first page for the current filters.
-     *
-     * Re-requests only when the filters changed (or `force` is set), so the
-     * items survive a navigation away and back — which is what allows the
-     * router to restore the previous scroll position on `savedPosition`.
+     * Loads page 1. Same filters => no request (unless `force`), so the items
+     * (and the restored scroll) survive a round trip to a profile.
      */
     async loadFirstPage({ force = false } = {}) {
-      const signature = this.buildSignature()
-      console.log('loadFirstPage', { signature, appliedSignature: this.appliedSignature })
-      if (!force && signature === this.appliedSignature && this.items.length > 0) return
+      const key = filterKey(listingFiltersOf(this))
+      if (!force && key === this.appliedSignature && this.items.length > 0) return
 
-      this.appliedSignature = signature
+      this.appliedSignature = key
       this.page = 1
       this.items = []
       this.loading = 'first'
@@ -152,7 +131,6 @@ export const useProfessionalsStore = defineStore('professionals', {
       }
     },
 
-    /** Clears all filters. */
     clearFilters() {
       this.search = ''
       this.category = null

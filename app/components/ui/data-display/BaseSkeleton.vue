@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Loading placeholder block. */
 withDefaults(
   defineProps<{
     rounded?: string

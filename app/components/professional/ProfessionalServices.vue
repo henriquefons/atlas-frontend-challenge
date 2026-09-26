@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** List of services offered by the professional. */
 defineProps<{ services: string[] }>()
 </script>
 

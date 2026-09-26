@@ -1,12 +1,6 @@
-/**
- * Centralized domain constants for the professionals catalog.
- *
- * Single source of truth for categories and sort options, so the UI, the
- * store and the URL parsing all stay in sync. Auto-imported by Nuxt.
- */
+/** Domain constants for the catalog: categories, sort options and pagination limits. */
 import type { ProfessionalCategory, SortOption } from '@/types/professional'
 
-/** All categories available in the catalog. */
 export const PROFESSIONAL_CATEGORIES: ProfessionalCategory[] = [
   'Serviços Domésticos',
   'Construção e Reforma',
@@ -18,16 +12,12 @@ export const PROFESSIONAL_CATEGORIES: ProfessionalCategory[] = [
   'Automotivo',
 ]
 
-/** Default sort applied when none is provided. */
 export const DEFAULT_SORT: SortOption = 'rating'
 
-/** Default number of items per page. */
 export const DEFAULT_LIMIT = 20
 
-/** Maximum number of items per page accepted by the API. */
 export const MAX_LIMIT = 100
 
-/** Sort options with their display labels. */
 export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'rating', label: 'Melhor avaliados' },
   { value: 'price_asc', label: 'Menor preço' },
@@ -35,17 +25,16 @@ export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'distance', label: 'Mais próximos' },
 ]
 
-/** Valid sort values, derived from SORT_OPTIONS. */
+/** Derived from SORT_OPTIONS. */
 export const SORT_VALUES: SortOption[] = SORT_OPTIONS.map((option) => option.value)
 
-/** Type guard: checks whether a value is a valid category. */
+/** Value guards for the values that come from the URL. */
 export function isProfessionalCategory(value: unknown): value is ProfessionalCategory {
   return (
     typeof value === 'string' && PROFESSIONAL_CATEGORIES.includes(value as ProfessionalCategory)
   )
 }
 
-/** Type guard: checks whether a value is a valid sort option. */
 export function isSortOption(value: unknown): value is SortOption {
   return typeof value === 'string' && SORT_VALUES.includes(value as SortOption)
 }

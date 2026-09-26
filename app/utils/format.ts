@@ -1,8 +1,3 @@
-/**
- * Pure formatting helpers used across the UI.
- * Auto-imported by Nuxt (no manual import needed).
- */
-
 /** Formats a number as Brazilian currency (e.g. 1234.5 -> "R$ 1.234,50"). */
 export function formatBRL(value: number): string {
   return new Intl.NumberFormat('pt-BR', {

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Sort selector for the listing. */
 import { SORT_OPTIONS } from '@/constants/professional'
 import type { SortOption } from '@/types/professional'
 

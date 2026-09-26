@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Card summarizing a professional in the listing. */
 import type { Professional } from '@/types/professional'
 
 const props = defineProps<{ professional: Professional }>()

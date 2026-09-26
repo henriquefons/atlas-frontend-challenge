@@ -1,11 +1,6 @@
-/**
- * Avatar helpers: derive initials and a stable color from a name.
- * Auto-imported by Nuxt (no manual import needed).
- */
+/** Avatar helpers: initials and a deterministic color from the name. */
 
-/**
- * Extracts up to two initials from a full name (e.g. "Ana Souza" -> "AS").
- */
+/** "Ana Souza" -> "AS"; a single name -> its first two letters. */
 export function getInitials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean)
   if (words.length === 0) return '?'
@@ -36,10 +31,7 @@ const AVATAR_COLORS = [
   'bg-orange-500',
 ]
 
-/**
- * Returns a deterministic Tailwind background class based on the name.
- * Keeps avatar colors stable across renders without storing them.
- */
+/** Deterministic Tailwind background class for a name (stable across renders). */
 export function getAvatarColor(name: string): string {
   const hash = [...name].reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) >>> 0, 0)
   return AVATAR_COLORS[hash % AVATAR_COLORS.length]!

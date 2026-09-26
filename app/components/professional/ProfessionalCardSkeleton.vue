@@ -1,7 +1,3 @@
-<script setup lang="ts">
-/** Placeholder card for the listing loading states (first page and "load more"). */
-</script>
-
 <template>
   <div class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200" aria-hidden="true">
     <div class="flex items-start gap-3">

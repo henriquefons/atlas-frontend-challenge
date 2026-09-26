@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** Search input with debounce. Updates the model with the debounced value. */
+/** Search input with debounce; the model is updated with the debounced value. */
 const model = defineModel<string>({ required: true })
 
 const props = withDefaults(

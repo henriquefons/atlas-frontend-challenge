@@ -1,8 +1,4 @@
 <script setup lang="ts">
-/**
- * Avatar with styled initials.
- * Uses the photo when available, otherwise renders deterministic initials.
- */
 const props = withDefaults(
   defineProps<{
     name: string

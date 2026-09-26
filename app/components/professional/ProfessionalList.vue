@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Responsive grid of professional cards with loading/empty/error states. */
 import type { Professional } from '@/types/professional'
 
 withDefaults(
@@ -17,7 +16,6 @@ defineEmits<{ retry: [] }>()
 </script>
 
 <template>
-  <!-- Error state -->
   <div v-if="error" class="rounded-xl border border-red-200 bg-red-50 p-6 text-center" role="alert">
     <p class="text-sm font-medium text-red-800">{{ error }}</p>
     <BaseButton class="mt-3" size="sm" variant="secondary" @click="$emit('retry')">
@@ -25,7 +23,6 @@ defineEmits<{ retry: [] }>()
     </BaseButton>
   </div>
 
-  <!-- Loading state (skeletons) -->
   <div
     v-else-if="loading"
     class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -35,7 +32,6 @@ defineEmits<{ retry: [] }>()
     <ProfessionalCardSkeleton v-for="n in skeletonCount" :key="n" />
   </div>
 
-  <!-- Empty state -->
   <div
     v-else-if="items.length === 0"
     class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center"
@@ -44,7 +40,7 @@ defineEmits<{ retry: [] }>()
     <p class="mt-1 text-sm text-slate-500">Tente ajustar a busca ou os filtros.</p>
   </div>
 
-  <!-- Results (appends skeletons instead of swapping the grid) -->
+  <!-- Appends skeletons instead of swapping the grid. -->
   <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     <ProfessionalCard
       v-for="professional in items"

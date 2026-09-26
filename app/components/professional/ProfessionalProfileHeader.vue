@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Profile header: avatar, name, profession, rating, distance, category and price. */
 import type { Professional } from '@/types/professional'
 
 const props = defineProps<{ professional: Professional }>()

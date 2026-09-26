@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Native select with label. */
 export interface SelectOption {
   value: string
   label: string

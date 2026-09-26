@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Reusable button with variants and sizes. */
 withDefaults(
   defineProps<{
     variant?: 'primary' | 'secondary' | 'ghost'

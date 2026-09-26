@@ -1,10 +1,5 @@
 <script setup lang="ts">
-/**
- * Professional profile page.
- *
- * Loads a single professional by id (SSR-friendly), sets dynamic SEO tags and
- * throws a real 404 when the professional does not exist.
- */
+/** Profile page: loads by id (SSR), sets SEO meta and throws a real 404 when missing. */
 const route = useRoute()
 const router = useRouter()
 const professionalStore = useProfessionalsStore()
@@ -15,7 +10,7 @@ await useAsyncData(`professional-${id}`, async () => {
   return professionalStore.professional
 })
 
-// Real HTTP 404 (correct status for SEO and crawlers).
+// Real 404 status for crawlers/SEO.
 if (professionalStore.errorById || !professionalStore.professional) {
   throw createError({
     statusCode: 404,
@@ -26,10 +21,7 @@ if (professionalStore.errorById || !professionalStore.professional) {
 
 const professional = computed(() => professionalStore.professional!)
 
-/**
- * Makes vue-router hand `savedPosition` to Nuxt's scrollBehavior and restore
- * the scroll position. Otherwise it lets the browser follow the `href`.
- */
+/** Lets vue-router hand `savedPosition` to Nuxt's scrollBehavior; otherwise the `href` handles it. */
 function handleBack(event: MouseEvent) {
   // Modifiers and middle click keep the native behaviour (new tab).
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return
@@ -51,7 +43,6 @@ useSeoMeta({
 
 <template>
   <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-    <!-- Back link -->
     <a
       href="/"
       class="mb-4 inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"

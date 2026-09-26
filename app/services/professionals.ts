@@ -1,17 +1,11 @@
-/**
- * Professionals API service.
- *
- * Pure API functions (no state). They are consumed exclusively by the
- * Pinia stores, which own the reactive state and orchestration.
- */
+/** API calls for the catalog; the reactive state lives in the stores. */
 import type { Professional, ProfessionalsQuery, ProfessionalsResponse } from '@/types/professional'
 
-/** Fetches a paginated, filtered and sorted list of professionals. */
+/** Paginated, filtered and sorted listing. */
 export function getProfessionals(query: ProfessionalsQuery = {}) {
   return $fetch<ProfessionalsResponse>('/api/professionals', { query })
 }
 
-/** Fetches a single professional by id. */
 export function getProfessionalById(id: string) {
   return $fetch<Professional>(`/api/professionals/${id}`)
 }
