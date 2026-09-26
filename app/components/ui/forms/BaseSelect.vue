@@ -5,8 +5,6 @@ export interface SelectOption {
   label: string
 }
 
-// Two-way binding via `defineModel` (Vue 3.4+): replaces the
-// `modelValue` prop + `update:modelValue` emit pair with a writable ref.
 const model = defineModel<string>({ required: true })
 
 withDefaults(

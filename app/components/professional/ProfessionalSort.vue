@@ -3,8 +3,6 @@
 import { SORT_OPTIONS } from '@/constants/professional'
 import type { SortOption } from '@/types/professional'
 
-// Two-way binding via `defineModel` (Vue 3.4+): replaces the
-// `modelValue` prop + `update:modelValue` emit pair with a writable ref.
 const model = defineModel<SortOption>({ required: true })
 </script>
 
