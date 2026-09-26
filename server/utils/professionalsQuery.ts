@@ -7,7 +7,7 @@ import type { Professional, ProfessionalsResponse, SortOption } from '@/types/pr
 import { normalizeText } from './normalizeText'
 
 /** Sort comparators, keyed by the `sort` query param. */
-export const SORTABLE: Record<SortOption, (a: Professional, b: Professional) => number> = {
+const SORTABLE: Record<SortOption, (a: Professional, b: Professional) => number> = {
   price_asc: (a, b) => a.price - b.price,
   price_desc: (a, b) => b.price - a.price,
   rating: (a, b) => b.rating - a.rating,
@@ -55,7 +55,7 @@ export function parseProfessionalsQuery(query: Record<string, unknown> = {}): Pr
 }
 
 /** Filters by category and/or search, then sorts (never mutates the input). */
-export function filterAndSortProfessionals(
+function filterAndSortProfessionals(
   items: readonly Professional[],
   { search, category, sort }: Pick<ProfessionalsQuery, 'search' | 'category' | 'sort'>,
 ): Professional[] {

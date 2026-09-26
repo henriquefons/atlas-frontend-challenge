@@ -38,22 +38,13 @@ function goToListing() {
         {{ error.message }}
       </p>
 
-      <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-        <button
-          type="button"
-          class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          @click="goToListing"
-        >
-          Voltar para a listagem
-        </button>
-        <!-- Real link, works without JS: `clearError` needs the client. -->
-        <a
-          href="/"
-          class="inline-flex items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 ring-1 ring-inset ring-slate-300 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
-        >
-          Recarregar a página
-        </a>
-      </div>
+      <a
+        href="/"
+        class="mt-6 inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        @click.prevent="goToListing"
+      >
+        Voltar para a listagem
+      </a>
     </main>
   </div>
 </template>
