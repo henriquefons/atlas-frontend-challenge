@@ -1,4 +1,5 @@
 /** Listing + detail state. Components read from here; only this store calls the API service. */
+import { defineStore } from 'pinia'
 import { DEFAULT_LIMIT, DEFAULT_SORT } from '@/constants/professional'
 import { getProfessionalById, getProfessionals } from '@/services/professionals'
 import type { Professional, ProfessionalCategory, SortOption } from '@/types/professional'
