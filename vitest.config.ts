@@ -12,6 +12,9 @@ export default defineConfig({
       '#server': fileURLToPath(new URL('./server', import.meta.url)),
     },
   },
+  define: {
+    'import.meta.client': 'true',
+  },
   test: {
     environment: 'happy-dom',
     include: ['test/unit/**/*.spec.ts'],

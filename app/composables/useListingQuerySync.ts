@@ -1,9 +1,21 @@
-/** Two-way sync between the listing filters (store) and the URL query. */
-export function useListingQuerySync() {
-  const store = useProfessionalsStore()
-  const route = useRoute()
-  const router = useRouter()
+/**
+ * Two-way sync between the listing filters (store) and the URL query.
+ */
+import { watch } from 'vue'
+import type { LocationQuery, LocationQueryRaw } from 'vue-router'
+import {
+  listingFiltersOf,
+  parseListingFilters,
+  queryMatchesFilters,
+  serializeListingFilters,
+  type ListingFilters,
+} from '@/utils/listingFilters'
 
+export function useListingQuerySync(
+  store: ListingFilters = useProfessionalsStore(),
+  route: { query: LocationQuery } = useRoute(),
+  router: { replace: (to: { query: LocationQueryRaw }) => unknown } = useRouter(),
+) {
   /** URL query -> store. Call inside `useAsyncData` so it also runs on the server. */
   function syncFromUrl() {
     const { search, category, sort } = parseListingFilters(route.query)
