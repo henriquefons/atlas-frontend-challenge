@@ -44,27 +44,22 @@ function queryMatchesFilters() {
   })
 }
 
-// Initial load (SSR-friendly).
-await useAsyncData('professionals', async () => {
-  readFromUrl()
-  await store.getProfessionals()
-  return true
-})
+// Initial load (SSR-friendly) + reload whenever the URL changes.
+await useAsyncData(
+  'professionals',
+  async () => {
+    readFromUrl()
+    await store.reset()
+    return true
+  },
+  { watch: [() => route.fullPath] },
+)
 
-// Filters changed by the user are pushed to the URL
 watch(
   () => [store.search, store.category, store.sort],
   () => {
     if (queryMatchesFilters()) return
     router.replace({ query: currentQuery() })
-  },
-)
-
-watch(
-  () => route.query,
-  async () => {
-    readFromUrl()
-    await store.reset()
   },
 )
 

@@ -132,23 +132,21 @@ export const useProfessionalsStore = defineStore('professionals', {
       await this.getProfessionals()
     },
 
-    /** Updates a filter and reloads from the first page. */
-    async setFilter(
+    /** Updates a filter. */
+    setFilter(
       key: 'search' | 'category' | 'sort',
       value: string | ProfessionalCategory | SortOption | null,
     ) {
       if (key === 'search') this.search = value as string
       else if (key === 'category') this.category = value as ProfessionalCategory | null
       else this.sort = value as SortOption
-      await this.reset()
     },
 
-    /** Clears all filters and reloads. */
-    async clearFilters() {
+    /** Clears all filters.*/
+    clearFilters() {
       this.search = ''
       this.category = null
       this.sort = DEFAULT_SORT
-      await this.reset()
     },
   },
 })
