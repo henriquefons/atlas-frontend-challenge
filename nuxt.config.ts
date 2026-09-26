@@ -11,14 +11,18 @@ export default defineNuxtConfig({
   // UI primitives grouped by purpose. `pathPrefix: false` keeps the component
   // name as-is (BaseButton, BaseInput, ...) regardless of its folder.
   components: [
-    { path: '~/components/ui/actions', pathPrefix: false },
-    { path: '~/components/ui/forms', pathPrefix: false },
-    { path: '~/components/ui/data-display', pathPrefix: false },
-    { path: '~/components/professional', pathPrefix: false },
+    { path: '@/components/ui/actions', pathPrefix: false },
+    { path: '@/components/ui/forms', pathPrefix: false },
+    { path: '@/components/ui/data-display', pathPrefix: false },
+    { path: '@/components/professional', pathPrefix: false },
   ],
 
   typescript: {
     strict: true,
+    // `test/unit` mirrors `app/`, so the specs are part of the app type graph.
+    tsConfig: {
+      include: ['../test/unit/**/*'],
+    },
   },
 
   alias: {
