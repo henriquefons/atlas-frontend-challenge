@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Listing page: syncs the filters with the URL, triggers the loads, renders the list. */
 import { PROFESSIONAL_CATEGORIES } from '@/constants/professional'
 
 const professionalStore = useProfessionalsStore()
