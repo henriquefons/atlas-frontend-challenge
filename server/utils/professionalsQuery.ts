@@ -42,11 +42,11 @@ export function matchesSearch(professional: Professional, search: string): boole
  */
 export function parseProfessionalsQuery(query: Record<string, unknown> = {}): ProfessionalsQuery {
   const sort = query.sort ? String(query.sort) : ''
-  const page = Number.parseInt(String(query.page ?? ''), 10)
-  const limit = Number.parseInt(String(query.limit ?? ''), 10)
+  const page = Number.parseInt(String(query.page || ''), 10)
+  const limit = Number.parseInt(String(query.limit || ''), 10)
 
   return {
-    search: String(query.search ?? '').trim(),
+    search: String(query.search || '').trim(),
     category: query.category ? String(query.category) : undefined,
     sort: sort in SORTABLE ? (sort as SortOption) : undefined,
     page: Math.max(1, page || 1),

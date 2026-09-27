@@ -6,8 +6,8 @@ import { statusCodeOf, statusTextOf } from '@/utils/httpError'
 const props = defineProps<{ error: NuxtError }>()
 
 const isDev = import.meta.dev
-const statusCode = computed(() => statusCodeOf(props.error) ?? 500)
-const message = computed(() => statusTextOf(props.error) ?? 'Não foi possível carregar esta página')
+const statusCode = computed(() => statusCodeOf(props.error) || 500)
+const message = computed(() => statusTextOf(props.error) || 'Não foi possível carregar esta página')
 
 useSeoMeta({
   title: () => `${message.value} (${statusCode.value})`,

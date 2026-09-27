@@ -21,7 +21,7 @@ export function sameFilters(a: ListingFilters, b: ListingFilters): boolean {
 
 /** Identity of a fetch: the normalized filters as a single string. */
 export function filterKey(filters: ListingFilters): string {
-  return `${filters.search}|${filters.category ?? ''}|${filters.sort}`
+  return `${filters.search}|${filters.category || ''}|${filters.sort}`
 }
 
 /** Builds the filters from a route query, falling back to the defaults. */

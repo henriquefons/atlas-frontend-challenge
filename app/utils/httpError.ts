@@ -15,7 +15,7 @@ export function statusCodeOf(error: unknown): number | undefined {
     statusCode?: unknown
     response?: { status?: unknown }
   }
-  const code = status ?? statusCode ?? response?.status
+  const code = status || statusCode || response?.status
 
   return typeof code === 'number' ? code : undefined
 }
@@ -30,7 +30,7 @@ export function statusTextOf(error: unknown): string | undefined {
   if (!error || typeof error !== 'object') return undefined
 
   const { statusText, statusMessage } = error as { statusText?: unknown; statusMessage?: unknown }
-  const text = statusText ?? statusMessage
+  const text = statusText || statusMessage
 
   return typeof text === 'string' && text.trim() !== '' ? text : undefined
 }
