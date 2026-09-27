@@ -28,6 +28,8 @@ export default defineNuxtConfig({
   alias: {
     // `data/` lives outside `app/`, so we expose a dedicated alias.
     '#data': fileURLToPath(new URL('./data', import.meta.url)),
+    // `server/` lives outside `app/` too, and its unit tests import it directly.
+    '#server': fileURLToPath(new URL('./server', import.meta.url)),
   },
 
   app: {

@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { DEFAULT_LIMIT, DEFAULT_SORT } from '@/constants/professional'
 import { getProfessionalById, getProfessionals } from '@/services/professionals'
 import type { Professional, ProfessionalCategory, SortOption } from '@/types/professional'
+import { createHttpError, isNotFoundError } from '@/utils/httpError'
 import { filterKey, listingFiltersOf } from '@/utils/listingFilters'
 
 /** One request in flight at a time, so the guards cannot conflict. */
@@ -26,7 +27,6 @@ interface ProfessionalsState {
   loading: LoadingState
   errorFirst: string | null
   errorNext: string | null
-  errorById: string | null
 }
 
 export const useProfessionalsStore = defineStore('professionals', {
@@ -47,7 +47,6 @@ export const useProfessionalsStore = defineStore('professionals', {
     loading: 'idle',
     errorFirst: null,
     errorNext: null,
-    errorById: null,
   }),
 
   getters: {
@@ -95,12 +94,13 @@ export const useProfessionalsStore = defineStore('professionals', {
 
     async loadById(id: string) {
       this.loading = 'detail'
-      this.errorById = null
       try {
         this.professional = await getProfessionalById(id)
-      } catch {
+      } catch (error) {
         this.professional = null
-        this.errorById = 'Profissional não encontrado.'
+        throw isNotFoundError(error)
+          ? createHttpError(404, 'Profissional não encontrado')
+          : createHttpError(500, 'Não foi possível carregar o perfil do profissional')
       } finally {
         this.loading = 'idle'
       }

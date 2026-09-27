@@ -1,23 +1,12 @@
 <script setup lang="ts">
-/** Profile page: loads by id (SSR), sets SEO meta and throws a real 404 when missing. */
 const route = useRoute()
 const router = useRouter()
 const professionalStore = useProfessionalsStore()
 const id = route.params.id as string
 
-await useAsyncData(`professional-${id}`, async () => {
-  await professionalStore.loadById(id)
-  return professionalStore.professional
-})
+const { error } = await useAsyncData(`professional-${id}`, () => professionalStore.loadById(id))
 
-// Real 404 status for crawlers/SEO.
-if (professionalStore.errorById || !professionalStore.professional) {
-  throw createError({
-    statusCode: 404,
-    statusMessage: 'Profissional não encontrado',
-    fatal: true,
-  })
-}
+if (error.value) throw error.value
 
 const professional = computed(() => professionalStore.professional!)
 

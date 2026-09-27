@@ -26,7 +26,7 @@ export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 ]
 
 /** Derived from SORT_OPTIONS. */
-export const SORT_VALUES: SortOption[] = SORT_OPTIONS.map((option) => option.value)
+const SORT_VALUES: SortOption[] = SORT_OPTIONS.map((option) => option.value)
 
 /** Value guards for the values that come from the URL. */
 export function isProfessionalCategory(value: unknown): value is ProfessionalCategory {

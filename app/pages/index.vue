@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** Listing page: syncs the filters with the URL, triggers the loads, renders the list. */
 import { PROFESSIONAL_CATEGORIES } from '@/constants/professional'
 
 const professionalStore = useProfessionalsStore()
@@ -35,6 +34,30 @@ await useAsyncData(
   },
   { watch: [() => route.fullPath] },
 )
+
+const listingTitle = computed(() => {
+  if (professionalStore.search) return `Profissionais para "${professionalStore.search}"`
+  if (professionalStore.category) return `${professionalStore.category} — profissionais`
+
+  return 'Profissionais autônomos'
+})
+
+const listingDescription = computed(
+  () =>
+    `Encontre profissionais autônomos${professionalStore.category ? ` de ${professionalStore.category}` : ''} por categoria, preço, avaliação e distância.`,
+)
+
+useSeoMeta({
+  title: () => `${listingTitle.value} — Catálogo de Profissionais`,
+  description: () => listingDescription.value,
+  ogTitle: () => `${listingTitle.value} — Catálogo de Profissionais`,
+  ogDescription: () => listingDescription.value,
+  ogType: 'website',
+})
+
+// `useRequestURL` needs the request event, so it stays in the setup.
+const { origin } = useRequestURL()
+useHead({ link: [{ rel: 'canonical', href: `${origin}/` }] })
 
 const resultsLabel = computed(() => {
   if (professionalStore.isLoadingFirst) return 'Carregando...'

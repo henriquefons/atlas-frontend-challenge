@@ -53,6 +53,12 @@ describe('listingFilters serialization', () => {
     ).toEqual({ search: 'ana', category: 'Tecnologia', sort: 'price_asc' })
   })
 
+  it('serializes the canonical form, so a blank search leaves no key behind', () => {
+    // `serializeListingFilters` expects the canonical form: going through
+    // `listingFiltersOf` first is what keeps `?search=`/`?search=%20%20` out of the URL.
+    expect(serializeListingFilters(listingFiltersOf({ ...DEFAULTS, search: '   ' }))).toEqual({})
+  })
+
   it('round-trips URL and filters keeping the normalized value', () => {
     const cases: ListingFilters[] = [
       DEFAULTS,
@@ -79,6 +85,16 @@ describe('listingFilters matching', () => {
   it('reports a mismatch when the query carries leftovers', () => {
     expect(queryMatchesFilters({ search: '' }, DEFAULTS)).toBe(false)
     expect(queryMatchesFilters({ foo: '1' }, DEFAULTS)).toBe(false)
+  })
+
+  it('only matches the state that the query expresses in full', () => {
+    const filters: ListingFilters = { search: 'ana', category: 'Tecnologia', sort: 'price_asc' }
+    const query = { search: 'ana', category: 'Tecnologia', sort: 'price_asc' }
+
+    expect(queryMatchesFilters(query, filters)).toBe(true)
+    // A different value in any field, or one extra key, invalidates the state.
+    expect(queryMatchesFilters({ ...query, sort: 'distance' }, filters)).toBe(false)
+    expect(queryMatchesFilters({ ...query, page: '2' }, filters)).toBe(false)
   })
 
   it('gives different fetch identities to different filters', () => {
