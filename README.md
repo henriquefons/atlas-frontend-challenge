@@ -2,9 +2,10 @@
 
 Aplicação **Nuxt 4 (SSR)** que lista 520 profissionais autônomos com busca, filtros por categoria, ordenação, paginação por *infinite scroll* e página de perfil — servida por uma API Nitro local que lê `data/professionals.json`.
 
+**🌐 Site:** https://atlas-frontend-challenge-henrique.vercel.app/
+
 | | |
 | --- | --- |
-| **Deploy** | https://atlas-frontend-challenge-henrique.vercel.app |
 | **Stack** | Nuxt 4 · Vue 3 · TypeScript · Pinia · Tailwind CSS · Nitro · Vitest |
 | **Qualidade** | ESLint · Prettier · `vue-tsc` · CI (lint, formatação, tipos, 71 testes e build) |
 | **IA** | desenvolvimento assistido por **DeepSeek V4 Flash** → [Uso de IA](#uso-de-ia) |
@@ -110,14 +111,7 @@ O deploy é inteiramente do Vercel (integração Git: produção e *preview* por
 ## Uso de IA
 
 O desenvolvimento foi assistido por **DeepSeek V4 Flash** como par de programação: estrutura de componentes, primeiros rascunhos de código repetitivo e de testes, revisão e depuração (incluindo `IntersectionObserver`, restauração de scroll e normalização de acento na busca). Nada entrou sem leitura, ajuste e validação — lint, formatação, tipos e 71 testes rodam em CI a cada push — e as decisões de arquitetura e de UX documentadas aqui foram revisadas e são defendidas por mim.
-
-## Limitações e próximos passos
-
-- **Fotos:** são de demonstração — 24 retratos *hotlinkados* do CDN da Unsplash (`images.unsplash.com`, sem chave de API e sem arquivo no repositório), repetidos entre os 520 registros e sem relação com o nome da pessoa; em produção viriam de upload real, com storage e moderação.
-- **Cache de CDN:** o HTML responde `cache-control: public, max-age=0, must-revalidate`; um `routeRules: { swr: 60 }` no `nuxt.config.ts` serviria a listagem do CDN com revalidação em background.
-- **Região das functions:** o SSR roda em `iad1` (EUA). Mover o projeto para `gru1` (São Paulo) reduz o TTFB de quem acessa do Brasil.
-- **Testes de integração/E2E:** o próximo passo natural é cobrir os handlers HTTP com `@nuxt/test-utils` (`setup()` + `$fetch`) e um fluxo ponta a ponta (buscar → filtrar → abrir perfil → voltar).
-
+ 
 ## Decisões técnicas — listagem de profissionais
 
 O porquê das escolhas que mudam comportamento; o detalhe fino mora nos comentários dos arquivos citados e nos testes.
@@ -129,4 +123,4 @@ O porquê das escolhas que mudam comportamento; o detalhe fino mora nos comentá
 - **Render incremental** (`ProfessionalList.vue`): `v-memo="[professional.id]"` evita re-render dos itens inalterados, e os skeletons de "carregar mais" são **anexados** ao grid (4 cartões) em vez de trocar a grade inteira — sem CLS.
 - **Fonte única dos filtros** (`app/utils/listingFilters.ts`): é o único lugar que conhece os query params — normalização do `search`, `parse`/`serialize`, `sameFilters` e `filterKey` (a identidade de fetch do store); `useListingQuerySync` é a ponte store ⇄ URL sobre elas. Adicionar um filtro exige store + util + componente, e o handler da API ficou com 3 linhas porque a query foi para `server/utils/professionalsQuery.ts`.
 
-- **Avatar com fallback** (`scripts/generate-data.mjs`, `ProfessionalAvatar.vue`): a foto sai de `faker.helpers.arrayElement([...validUrls, ...BROKEN_AVATAR_URLS])`: 24 retratos do Unsplash (11 femininos, 13 masculinos) mais 3 URLs quebradas de propósito; como o sorteio consome a stream do faker, o catálogo só segue reproduzível enquanto o seed (42) e a ordem das chamadas não mudarem, então `npm run generate:data` é um passo determinístico. Cerca de 21% dos registros apontam para uma URL quebrada (404, caminho errado e host inexistente) e o `@error` do `<img>` cai nas iniciais — o fallback é exercitado pelos dados reais, não só pelo teste. Como fotos *above the fold* são `eager`, o navegador pode disparar o `error` **antes da hidratação**, quando o Vue ainda não anexou o listener (o evento se perde e a `<img>` quebrada fica presa): um `onMounted` relê o DOM (`complete` + `naturalWidth === 0`) e reconcilia esse caso, sem disparar downloads extras. O `<img>` também reserva o quadrado (`width`/`height`) contra CLS e carrega `lazy` fora do cabeçalho do perfil e `eager` nele.
+- **Avatar com fallback** (`scripts/generate-data.mjs`, `ProfessionalAvatar.vue`): a foto é sorteada pelo faker entre 24 retratos do Unsplash e 3 URLs quebradas de propósito (~21% dos registros); com o seed fixo (42), o catálogo continua reproduzível. O `<img>` reserva o quadrado (`width`/`height`) contra CLS, mostra as iniciais quando a foto falha (`@error`) e cobre no `onMounted` o erro disparado antes da hidratação, sem baixar nada extra.
