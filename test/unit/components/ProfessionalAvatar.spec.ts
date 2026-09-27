@@ -1,7 +1,13 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
+import { describe, expect, it, vi } from 'vitest'
 import ProfessionalAvatar from '@/components/professional/ProfessionalAvatar.vue'
 import { getAvatarColor } from '@/utils/avatar'
+
+Object.defineProperty(HTMLImageElement.prototype, 'complete', {
+  configurable: true,
+  get: () => false,
+})
 
 describe('ProfessionalAvatar', () => {
   it('renders the initials when there is no photo', () => {
@@ -46,5 +52,51 @@ describe('ProfessionalAvatar', () => {
     const wrapper = mount(ProfessionalAvatar, { props: { name: '  ' } })
 
     expect(wrapper.get('span').text()).toBe('?')
+  })
+
+  it('falls back to the initials when the photo fails to load', async () => {
+    const wrapper = mount(ProfessionalAvatar, {
+      props: { name: 'Ana Souza', src: 'https://example.com/quebrada.jpg' },
+    })
+
+    await wrapper.get('img').trigger('error')
+
+    expect(wrapper.find('img').exists()).toBe(false)
+    expect(wrapper.get('span').text()).toBe('AS')
+  })
+
+  it('falls back when the photo already failed before hydration', async () => {
+    // Above-the-fold photos are eager, so their `error` can fire while Vue is
+    // still hydrating and the listener misses it; onMounted reads the DOM back.
+    const complete = vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(true)
+    const naturalWidth = vi
+      .spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get')
+      .mockReturnValue(0)
+
+    try {
+      const wrapper = mount(ProfessionalAvatar, {
+        props: { name: 'Ana Souza', src: 'https://example.com/quebrada.jpg' },
+      })
+
+      // `onMounted` flips `failed`, but the DOM updates on the next tick.
+      await nextTick()
+
+      expect(wrapper.find('img').exists()).toBe(false)
+      expect(wrapper.get('span').text()).toBe('AS')
+    } finally {
+      complete.mockRestore()
+      naturalWidth.mockRestore()
+    }
+  })
+
+  it('gives a new src a new chance after a failure', async () => {
+    const wrapper = mount(ProfessionalAvatar, {
+      props: { name: 'Ana Souza', src: 'https://example.com/quebrada.jpg' },
+    })
+
+    await wrapper.get('img').trigger('error')
+    await wrapper.setProps({ src: 'https://example.com/ana.jpg' })
+
+    expect(wrapper.get('img').attributes('src')).toBe('https://example.com/ana.jpg')
   })
 })
