@@ -124,3 +124,12 @@ O porquê das escolhas que mudam comportamento; o detalhe fino mora nos comentá
 - **Fonte única dos filtros** (`app/utils/listingFilters.ts`): é o único lugar que conhece os query params — normalização do `search`, `parse`/`serialize`, `sameFilters` e `filterKey` (a identidade de fetch do store); `useListingQuerySync` é a ponte store ⇄ URL sobre elas. Adicionar um filtro exige store + util + componente, e o handler da API ficou com 3 linhas porque a query foi para `server/utils/professionalsQuery.ts`.
 
 - **Avatar com fallback** (`scripts/generate-data.mjs`, `ProfessionalAvatar.vue`): a foto é sorteada pelo faker entre 24 retratos do Unsplash e 3 URLs quebradas de propósito (~21% dos registros); com o seed fixo (42), o catálogo continua reproduzível. O `<img>` reserva o quadrado (`width`/`height`) contra CLS, mostra as iniciais quando a foto falha (`@error`) e cobre no `onMounted` o erro disparado antes da hidratação, sem baixar nada extra.
+
+## Melhorias futuras
+
+Itens identificados durante o desenvolvimento e deliberadamente fora do escopo desta entrega.
+
+- **Validação do `search` e rate limit.** `parseProfessionalsQuery` não limita o tamanho de `search`; um teto (ex.: 100 caracteres) e um rate limit no handler evitariam abuso trivial.
+- **Testes de ponta a ponta.** Os 71 testes são unitários; o fluxo que mais depende de integração — busca → filtro → URL → perfil → **voltar com scroll restaurado** — só é validado manualmente. Playwright via `@nuxt/test-utils` (e2e) fecharia essa lacuna; `vitest-axe` automatizaria a acessibilidade, hoje cuidada à mão.
+- **i18n, dark mode e design tokens.** Textos pt-BR e as cores Tailwind estão hardcoded nos componentes; `@nuxtjs/i18n` e tokens de tema (com `dark:`) tornariam ambos configuráveis.
+
